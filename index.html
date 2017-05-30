@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<!-- index.html for CS4460 League of Viz group (Fall 2015) -->
+
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>League of Viz</title>
+
+        <!-- Sources for d3 & datamaps & jquery -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.3/d3.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/topojson/1.6.9/topojson.min.js"></script>
+        <script src="./datamaps.world.min.js"></script>
+        <script src="http://code.jquery.com/jquery-1.7.1.js"></script>
+        
+        <!-- Library for misc. functions -->
+        <script src="library.js"></script>
+        
+        <!-- Css -->
+        <link rel="stylesheet" type="text/css" href="style.css" />
+    </head>
+
+
+    <body>
+        <p id='header'>League of Viz</p>
+
+        <!-- MAP -->
+        <div id="container"></div>
+
+        <!-- DATA -->
+        <script> 
+            var map = new Datamap({
+                element: document.getElementById('container'),
+                projection: 'mercator', 
+                  fills: {
+                    defaultFill: "#f2f2f2",//"#ABDDA4", 
+                    northAM: "#B276B2", //purple
+                    europe: "#F15854", //red
+                    korea: "#FAA43A", //orange
+                    china: "#5DA5DA", //blue
+                    taiwan: "#60BD68" //green
+                  },
+                  geographyConfig: {
+                    popupOnHover: false,
+                    highlightOnHover: false
+                  },
+                  data: {
+                    USA: { fillKey: "northAM" }, //usa
+                    CAN: { fillKey: "northAM" }, //canada
+                    MEX: { fillKey: "northAM" }, //mexico
+
+                    ALB: { fillKey: "europe" }, //albania
+                    ARM: { fillKey: "europe" }, //armenia
+                    AUT: { fillKey: "europe" }, //austria
+                    AZE: { fillKey: "europe" }, //azerbaijan
+                    BLR: { fillKey: "europe" }, //belarus
+                    BEL: { fillKey: "europe" }, //belgium
+                    BIH: { fillKey: "europe" }, //bosnia and herzegovina
+                    BGR: { fillKey: "europe" }, //bulgaria
+                    HRV: { fillKey: "europe" }, //croatia
+                    CYP: { fillKey: "europe" }, //cyprus
+                    CZE: { fillKey: "europe" }, //czech republic
+                    DNK: { fillKey: "europe" }, //denmark
+                    EST: { fillKey: "europe" }, //estonia
+                    FIN: { fillKey: "europe" }, //finland
+                    FRA: { fillKey: "europe" }, //france
+                    GEO: { fillKey: "europe" }, //georgia
+                    DEU: { fillKey: "europe" }, //germany
+                    GRC: { fillKey: "europe" }, //greece
+                    HUN: { fillKey: "europe" }, //hungary
+                    ISL: { fillKey: "europe" }, //iceland
+                    IRL: { fillKey: "europe" }, //ireland
+                    ITA: { fillKey: "europe" }, //italy
+                    KAZ: { fillKey: "europe" }, //kazakhstan
+                    LVA: { fillKey: "europe" }, //latvia
+                    LTU: { fillKey: "europe" }, //Lithuania
+                    LUX: { fillKey: "europe" }, //luxembourg
+                    MKD: { fillKey: "europe" }, //macedonia
+                    MDA: { fillKey: "europe" }, //moldova
+                    MNE: { fillKey: "europe" }, //montenegro
+                    NLD: { fillKey: "europe" }, //netherlands
+                    NOR: { fillKey: "europe" }, //norway
+                    POL: { fillKey: "europe" }, //poland
+                    PRT: { fillKey: "europe" }, //portugal
+                    ROU: { fillKey: "europe" }, //romania
+                    RUS: { fillKey: "europe" }, //russia
+                    SRB: { fillKey: "europe" }, //serbia
+                    SVK: { fillKey: "europe" }, //slovakia
+                    SVN: { fillKey: "europe" }, //slovenia
+                    ESP: { fillKey: "europe" }, //spain
+                    SWE: { fillKey: "europe" }, //sweden
+                    CHE: { fillKey: "europe" }, //switzerland
+                    TUR: { fillKey: "europe" }, //turkey
+                    UKR: { fillKey: "europe" }, //ukraine
+                    GBR: { fillKey: "europe" }, //united kingdom
+
+                    KOR: { fillKey: "korea" },
+                    CHN: { fillKey: "china" },
+                    TWN: { fillKey: "taiwan"},
+                  }
+            });
+
+            // Data for region bubbles
+            var regions = [{
+                name: 'North America',
+                region: 'NA',
+                radius: 30,
+                latitude: 50.29,
+                longitude: -103.18
+              },{
+                name: 'Europe',
+                region: 'EU',
+                radius: 35,
+                latitude: 60.63,
+                longitude: 58.18
+              },{
+                name: 'China',
+                region: 'China',
+                radius: 20,
+                latitude: 35.54,
+                longitude: 101.07
+              },{
+                name: 'Korea',
+                region: 'Korea',
+                radius: 15,
+                latitude: 36.55,
+                longitude: 127.97
+              },{
+                name: 'Taiwan',
+                region: 'Taiwan',
+                radius: 10,
+                latitude: 23.5,
+                longitude: 121
+              }];
+
+            // Draw bubbles
+            map.bubbles(regions);
+
+            // Config basic values of bubble structures
+            map.svg.selectAll('.datamaps-bubble').each(function() {
+                var region = JSON.parse(this.getAttribute("data-info")).region;
+                var originalRad = Number(JSON.parse(this.getAttribute("data-info")).radius);
+                this.setAttribute("id", region+"Bubble");
+                this.setAttribute("region", region);
+                this.setAttribute("originalRadius", originalRad);
+                document.getElementById(region+"Bubble").style.fill="#aaa";
+            })
+                .append("svg:title") // DoD
+                .text(function (d) { return d.name; });
+
+
+            // Click event for bubbles
+            map.svg.selectAll('.datamaps-bubble').on('click', function() {
+                var region = JSON.parse(this.getAttribute("data-info")).region;
+                setKey(region,regionKeys);
+            });
+
+            // Mouseover and mouseout
+            map.svg.selectAll('.datamaps-bubble').on('mouseover', function() {
+                this.setAttribute("r",Number(this.getAttribute("originalRadius"))+10);
+            });
+
+            map.svg.selectAll('.datamaps-bubble').on('mouseout', function() {
+                this.setAttribute("r",Number(this.getAttribute("originalRadius")));
+            });
+
+        </script>
+
+
+        <!-- ROLE FILTER BUTTONS -->
+
+        <div id="category_select" style="position: relative; width: 1000px; height: 100px;">
+            <button onclick="setKey('Top', roleKeys)" id='TopButton' class='button' type='button'>TOP</button>
+            <button onclick="setKey('Jungle', roleKeys)" id='JungleButton' class='button' type='button'>JUNGLE</button>
+            <button onclick="setKey('Mid', roleKeys)" id='MidButton' class='button' type='button'>MID</button>
+            <button onclick="setKey('ADC', roleKeys)" id='ADCButton' class='button' type='button'>ADC</button>
+            <button onclick="setKey('Support', roleKeys)" id='SupportButton' class='button' type='button'>SUPPORT</button>
+            <!-- Radio buttons -->
+            <div id='select'>
+                View by: &nbsp;&nbsp;&nbsp;
+                <input onclick="toggleTeam()" type="radio" id="toggle-player" name="toggle" value="Player" checked>
+                <label for="toggle-player">Players</label>
+                <input onclick="toggleTeam()" type="radio" id="toggle-team" name="toggle" value="Team">
+                <label for="toggle-team">Teams</label>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Select an attribute.
+                <!-- Dropdown Box -->
+                <select id='varSelect' onchange='selectVar()'>
+                    <option value="KDA">KDA</option>
+                    <option value="Cpm">Cpm</option>
+                    <option value="Gpm">Gpm</option>
+                    <option value="Dpm">Dpm</option>
+                    <option value="Win Rate">Win Rate</option>
+                </select>
+            </div>
+        </div>
+
+
+        <!-- DATA HANDLING -->
+        <p id="chart"></p>
+        <script src="treemap.js"></script>
+        <script>
+            // keep track of filters
+            var roleKeys = [];
+            var regionKeys = [];
+            var inspectionVar = "KDA";
+
+            var byTeam = false;
+
+            // Create the first instance of the treemap.
+            updateViz();
+
+
+            /* Functions */
+            // Updates the treemap
+            function updateViz() {
+                d3.csv("cs-4460-project-data.csv", function(csv_data){
+                    // Organize/ delete data based on the parameters the user has selected.
+                    var nested_data = nestData(csv_data);
+                    // Root node for the treemap
+                    var root = {};
+                    // Root's key (for navigation)
+                    if (!byTeam) { root.key = "Players"; } else { root.key = "Teams"; }
+                    // Root's values
+                    root.values = nested_data;
+                    // Create the hierachy and create the treemap
+                    root = reSortRoot(root,inspectionVar);
+                    loadData(root);                         // TO treemap.js
+                });
+            }
+
+            // Dropdown: data metric select
+            function selectVar() {
+                inspectionVar = document.getElementById('varSelect').value;
+                updateViz();
+            }
+
+            // Filter keys and styling
+            function setKey(key, filterKeys) {
+                if (filterKeys.indexOf(key)!=-1) {
+                    filterKeys.remove(filterKeys.indexOf(key));
+                }
+                else { filterKeys.push(key); }
+                document.getElementById('TopButton').style['background-color'] = "#ddd";
+                document.getElementById('TopButton').style['color'] = "#000";
+                document.getElementById('JungleButton').style['background-color'] = "#ddd";
+                document.getElementById('JungleButton').style['color'] = "#000";
+                document.getElementById('MidButton').style['background-color'] = "#ddd";
+                document.getElementById('MidButton').style['color'] = "#000";
+                document.getElementById('ADCButton').style['background-color'] = "#ddd";
+                document.getElementById('ADCButton').style['color'] = "#000";
+                document.getElementById('SupportButton').style['background-color'] = "#ddd";
+                document.getElementById('SupportButton').style['color'] = "#000";
+                for (var i = 0; i<roleKeys.length; i++) {
+                    document.getElementById(roleKeys[i] + 'Button').style['background-color'] = "#444";
+                    document.getElementById(roleKeys[i] + 'Button').style['color'] = "#fff";
+                }
+                updateViz();
+            }
+
+            // Organize by teams or by players
+            function toggleTeam() {
+                if (document.getElementById("toggle-player").checked) {
+                    byTeam = false;
+                }
+                else if (document.getElementById("toggle-team").checked) {
+                    byTeam = true;
+                }
+                updateViz();
+            }
+
+            // Structure and filter data
+            function nestData(data) {
+                var ndata;
+                
+                if (byTeam) {
+                    ndata = d3.nest()
+                        .key(function(d) { return d.Team; })
+                        .key(function(d) {
+                            if ((regionKeys.indexOf(d.Region) == -1 && regionKeys.length != 0) 
+                                || (roleKeys.indexOf(d["Main role"]) == -1 && roleKeys.length != 0)) 
+                                { delete d[inspectionVar]; }
+                            else { return d["Player Name"]; }
+                        })
+                            .entries(data);
+                }
+                else {
+                    ndata = d3.nest()
+                        .key(function(d) {
+                            if ((regionKeys.indexOf(d.Region) == -1 && regionKeys.length != 0) 
+                                || (roleKeys.indexOf(d["Main role"]) == -1 && roleKeys.length != 0)) 
+                                { delete d[inspectionVar]; }
+                            else { return d["Player Name"]; }
+                        })
+                            .entries(data);
+                }
+                return ndata;
+            } //end nestData
+
+
+            // Animate selected region bubbles
+            window.setInterval(function() {
+                map.svg.selectAll('.datamaps-bubble').each(function() {
+                    var region = this.getAttribute("region");
+                    var originalRad = Number(this.getAttribute("originalRadius"));
+
+                    for (var i = 0; i<regionKeys.length; i++) {
+
+                        if (regionKeys[i] == region) {
+                            
+                            if (this.getAttribute("r") == originalRad) { this.setAttribute("r",originalRad+7); }
+                            else if (this.getAttribute("r") < originalRad+9) { this.setAttribute("r",originalRad); }
+                            document.getElementById(region+"Bubble").style.fill="#111";
+                        }
+                    }
+                    if (regionKeys.indexOf(region) == -1) { document.getElementById(region+"Bubble").style.fill=regionColors[region]; }
+                });
+
+            }, 800);
+
+        </script>
+    </body>
+</html>
